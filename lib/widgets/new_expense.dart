@@ -15,13 +15,13 @@ class _NewExpenseState extends State<NewExpense> {
 
   void _presentDatePicker() async {
     final now = DateTime.now();
-    final _datePicker = await showDatePicker(
+    final datePicker = await showDatePicker(
         context: context,
         initialDate: now,
         firstDate: DateTime(now.year - 10000, now.month, now.day),
         lastDate: now);
     setState(() {
-      _selectedDate = _datePicker;
+      _selectedDate = datePicker;
     });
   }
 
