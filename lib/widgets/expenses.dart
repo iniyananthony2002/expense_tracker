@@ -8,34 +8,77 @@ class Expenses extends StatefulWidget {
   const Expenses({super.key});
 
   @override
-  State<Expenses> createState() => _ExpensesState();
+  State<Expenses> createState() => ExpensesState();
 }
 
-class _ExpensesState extends State<Expenses> {
-  final List<ExpenseModel> _registeredExpenses = [
-    ExpenseModel(
-      title: 'Flutter Course',
-      amount: 499,
-      date: DateTime.now(),
-      category: Category.work,
-    ),
-    ExpenseModel(
-      title: 'Cinema',
-      amount: 120,
-      date: DateTime.now(),
-      category: Category.leisure,
-    ),
-  ];
+class ExpensesState extends State<Expenses> {
+  final List<ExpenseModel> _registeredExpenses = [];
+
+  void addExpenses(ExpenseModel expense) {
+    setState(
+      () {
+        _registeredExpenses.add(expense);
+        _registeredExpenses;
+      },
+    );
+  }
+
+  void removeExpenses(ExpenseModel expense) {
+    final expenseInsed = _registeredExpenses.indexOf(expense);
+    setState(
+      () {
+        _registeredExpenses.remove(expense);
+        _registeredExpenses;
+      },
+    );
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.purple[100],
+        duration: const Duration(seconds: 3),
+        content: Text(
+          'Expense of ${expense.title} on ${formatter.format(expense.date)} Deleted!',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        action: SnackBarAction(
+          backgroundColor: Colors.white,
+
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _registeredExpenses.insert(expenseInsed, expense);
+            });
+          },
+        ),
+      ),
+    );
+  }
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (ctx) => const NewExpense(),
+      builder: (ctx) => NewExpense(
+        addExpenses: addExpenses,
+      ),
     );
   }
 
   @override
   Widget build(context) {
+    Widget mainContent = const Center(
+      child: Text('Add Expenses to Display!'),
+    );
+
+    if (_registeredExpenses.isNotEmpty) {
+      mainContent = Expenseslist(
+        expenses: _registeredExpenses,
+        removeExpenses: removeExpenses,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Tracker'),
@@ -49,7 +92,9 @@ class _ExpensesState extends State<Expenses> {
       body: Column(
         children: [
           const Text('The Chart'),
-          Expanded(child: Expenseslist(expenses: _registeredExpenses))
+          Expanded(
+            child: mainContent,
+          )
         ],
       ),
     );
